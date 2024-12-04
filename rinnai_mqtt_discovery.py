@@ -3,10 +3,10 @@ import json
 import uuid
 import os
 class RinnaiHomeAssistantDiscovery:
-    def __init__(self, mqtt_host, mqtt_port, device_sn):
-        self.mqtt_host = os.getenv('MQTT_HOST', mqtt_host)
-        self.mqtt_port = os.getenv('MQTT_PORT', mqtt_port)
-        self.device_sn = os.getenv('DEVICE_SN', device_sn)
+    def __init__(self):
+        self.mqtt_host = os.getenv('LOCAL_MQTT_HOST')
+        self.mqtt_port = os.getenv('LOCAL_MQTT_POST')
+        self.device_sn = os.getenv('DEVICE_SN')
         # 唯一标识符
         self.unique_id = f"rinnai_{device_sn}"
         # MQTT客户端
