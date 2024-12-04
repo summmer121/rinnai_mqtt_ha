@@ -1,9 +1,10 @@
 # rinnai_mqtt
-hook rinnai mqtt msg
+
+中转林内mqtt通知到HA
 
 
-docker run 
-'''
+## docker run 
+```
 docker run -d \
   --name rinnai_mqtt_ha \
   -e DEVICE_ID=000000 \
@@ -14,11 +15,10 @@ docker run -d \
   -e LOCAL_MQTT_HOST=localhost \
   -e LOCAL_MQTT_PORT=1883 \
   ghcr.io/palafin02back/rinnai_mqtt_ha:release
+```
 
-'''
-
-docker-compose
-'''
+## docker-compose
+```
 version: '3.8'
 services:
   rinnai_mqtt_ha:
@@ -32,5 +32,4 @@ services:
       RINNAI_PASSWORD: pass
       LOCAL_MQTT_HOST: localhost  # 本地mqtt地址
       LOCAL_MQTT_PORT: 1883
-
-'''
+```
