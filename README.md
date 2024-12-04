@@ -46,3 +46,5 @@ services:
       LOCAL_MQTT_HOST: localhost  # 本地mqtt地址
       LOCAL_MQTT_PORT: 1883
 ```
+HA中MQTT可以自行发现
+![image](https://github.com/user-attachments/assets/ac388675-535c-4908-aeb8-4aefaa4a204a)
