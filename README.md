@@ -1,2 +1,2 @@
-# rinnai_mqtt_ha
-林内智家锅炉控制
+# rinnai_mqtt
+hook rinnai mqtt msg
