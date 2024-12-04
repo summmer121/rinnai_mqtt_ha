@@ -7,17 +7,17 @@ import os
 
 
 class RinnaiHomeAssistantIntegration:
-    def __init__(self, rinnai_host, rinnai_port, rinnai_username, rinnai_password,device_sn, local_mqtt_host, local_mqtt_port):
+    def __init__(self):
         # Rinnai原始配置
-        self.rinnai_host = os.getenv('RINNAI_HOST', rinnai_host)
-        self.rinnai_port = os.getenv('RINNAI_PORT', rinnai_port)
-        self.rinnai_username = os.getenv('RINNAI_USERNAME', rinnai_username)
-        self.rinnai_password = os.getenv('RINNAI_PASSWORD', rinnai_password)
-        self.device_sn = os.getenv('DEVICE_SN', device_sn)
+        self.rinnai_host = os.getenv('RINNAI_HOST')
+        self.rinnai_port = os.getenv('RINNAI_PORT')
+        self.rinnai_username = os.getenv('RINNAI_USERNAME')
+        self.rinnai_password = os.getenv('RINNAI_PASSWORD')
+        self.device_sn = os.getenv('DEVICE_SN')
 
         # 本地MQTT服务器配置
-        self.local_mqtt_host = os.getenv('LOCAL_MQTT_HOST', local_mqtt_host)
-        self.local_mqtt_port = os.getenv('LOCAL_MQTT_PORT', local_mqtt_port)
+        self.local_mqtt_host = os.getenv('LOCAL_MQTT_HOST')
+        self.local_mqtt_port = os.getenv('LOCAL_MQTT_PORT')
 
         # Rinnai MQTT客户端
         self.rinnai_client = self._create_rinnai_client()
