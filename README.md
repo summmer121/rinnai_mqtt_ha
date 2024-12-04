@@ -3,7 +3,7 @@ hook rinnai mqtt msg
 
 
 docker run 
-"""
+'''
 docker run -d \
   --name rinnai_mqtt_ha \
   -e DEVICE_ID=000000 \
@@ -15,10 +15,10 @@ docker run -d \
   -e LOCAL_MQTT_PORT=1883 \
   ghcr.io/palafin02back/rinnai_mqtt_ha:release
 
-"""
+'''
 
 docker-compose
-"""
+'''
 version: '3.8'
 services:
   rinnai_mqtt_ha:
@@ -33,4 +33,4 @@ services:
       LOCAL_MQTT_HOST: localhost  # 本地mqtt地址
       LOCAL_MQTT_PORT: 1883
 
-"""
+'''
