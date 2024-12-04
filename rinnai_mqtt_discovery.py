@@ -5,10 +5,10 @@ import os
 class RinnaiHomeAssistantDiscovery:
     def __init__(self):
         self.mqtt_host = os.getenv('LOCAL_MQTT_HOST')
-        self.mqtt_port = os.getenv('LOCAL_MQTT_POST')
+        self.mqtt_port = int(os.getenv('LOCAL_MQTT_PORT', '1883'))
         self.device_sn = os.getenv('DEVICE_SN')
         # 唯一标识符
-        self.unique_id = f"rinnai_{device_sn}"
+        self.unique_id = f"rinnai_{self.device_sn}"
         # MQTT客户端
         self.client = mqtt.Client(
             client_id=f"ha_discovery_{str(uuid.uuid4())[:8]}",
