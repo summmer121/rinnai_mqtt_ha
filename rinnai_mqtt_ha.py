@@ -4,6 +4,7 @@ import ssl
 import uuid
 import time
 import os
+import hashlib
 
 
 class RinnaiHomeAssistantIntegration:
@@ -12,7 +13,8 @@ class RinnaiHomeAssistantIntegration:
         self.rinnai_host = os.getenv('RINNAI_HOST')
         self.rinnai_port = int(os.getenv('RINNAI_PORT', '8883'))
         self.rinnai_username = os.getenv('RINNAI_USERNAME')
-        self.rinnai_password = os.getenv('RINNAI_PASSWORD')
+        self.rinnai_password = hashlib.md5(
+            os.getenv('RINNAI_PASSWORD').encode('utf-8')).hexdigest()
         self.device_sn = os.getenv('DEVICE_SN')
 
         # 本地MQTT服务器配置
@@ -56,13 +58,16 @@ class RinnaiHomeAssistantIntegration:
     def on_rinnai_connect(self, client, userdata, flags, rc):
         print(f"连接Rinnai MQTT服务器状态: {rc}")
         if rc == 0:
+            # 林内服务器获取状态主题
             state_topic = f"rinnai/SR/01/SR/{self.device_sn}/inf/"
+            get_topic = f"rinnai/SR/01/SR/{self.device_sn}/get/"
             client.subscribe(state_topic)
+            client.subscribe(get_topic)
 
     def on_local_connect(self, client, userdata, flags, rc):
         print(f"连接本地MQTT服务器状态: {rc}")
         if rc == 0:
-            # 订阅不同温度设置主题
+            # 本地服务器订阅设置主题，区分热水和暖气
             client.subscribe(
                 f"rinnai/SR/01/SR/{self.device_sn}/set/hot_water_temp")
             client.subscribe(
@@ -73,16 +78,14 @@ class RinnaiHomeAssistantIntegration:
             payload = msg.payload.decode('utf-8')
             parsed_data = json.loads(payload)
             print(f"收到Rinnai消息: {parsed_data}")
-            # 提取所有状态信息
             if "enl" in parsed_data:
-                # 重置设备状态
+
                 self.device_state = {}
 
                 for param in parsed_data['enl']:
                     param_id = param['id']
                     param_data = param['data']
 
-                    # 根据参数ID映射到具体状态
                     if param_id == 'operationMode':
                         self.device_state['operationMode'] = self._get_operation_mode(
                             param_data)
@@ -106,9 +109,8 @@ class RinnaiHomeAssistantIntegration:
             print(f"解析Rinnai消息错误: {e}")
 
     def _publish_device_state(self):
-        """
-        发布完整的设备状态到本地MQTT
-        """
+
+        # 发布完整的设备状态到本地MQTT
         state_topic = f"rinnai/SR/01/SR/{self.device_sn}/state"
         self.local_client.publish(
             state_topic,
@@ -117,11 +119,10 @@ class RinnaiHomeAssistantIntegration:
         print(f"发布设备状态: {self.device_state}")
 
     def on_local_message(self, client, userdata, msg):
-        # 处理来自Home Assistant的温度设置请求
         try:
             temperature = int(msg.payload.decode())
 
-            # 根据主题设置不同的温度
+            # 分别处理热水和暖气温度设置
             if msg.topic.endswith('hot_water_temp'):
                 self.set_rinnai_temperature('hot_water', temperature)
             elif msg.topic.endswith('heating_temp_nm'):
@@ -130,7 +131,7 @@ class RinnaiHomeAssistantIntegration:
             print(f"处理本地温度设置错误: {e}")
 
     def set_rinnai_temperature(self, heat_type, temperature):
-        # 根据热水类型构建不同的请求
+
         if heat_type == 'hot_water':
             param_id = 'hotWaterTempSetting'
         elif heat_type == 'heating':
@@ -138,7 +139,7 @@ class RinnaiHomeAssistantIntegration:
         else:
             raise ValueError("无效的热水类型")
 
-        # 构建Rinnai温度设置消息
+        # 向林内服务器发布设置温度主题
         request_payload = {
             "code": "03E9",
             "enl": [
@@ -160,10 +161,8 @@ class RinnaiHomeAssistantIntegration:
     def _get_operation_mode(self, mode_code):
         """转换操作模式编码"""
         mode_mapping = {
-            "0": "待机",
-            "1": "预热",
-            "2": "制热",
             "3": "普通模式"
+            "13" "外出模式"
         }
         return mode_mapping.get(mode_code, f"未知模式({mode_code})")
 

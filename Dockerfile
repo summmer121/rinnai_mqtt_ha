@@ -12,12 +12,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # 设置环境变量（根据需要修改）
 ENV DEVICE_ID=0F06000C \
-    MQTT_HOST=localhost \
-    MQTT_PORT=1883 \
-    RINNAI_HOST=localhost \
+    RINNAI_HOST=mqtt.rinnai.com.cn \
     RINNAI_PORT=8883 \
-    RINNAI_USERNAME=user \
-    RINNAI_PASSWORD=pass \
+    RINNAI_USERNAME=phone \
+    RINNAI_PASSWORD=password \
     LOCAL_MQTT_HOST=localhost \
     LOCAL_MQTT_PORT=1883
 
