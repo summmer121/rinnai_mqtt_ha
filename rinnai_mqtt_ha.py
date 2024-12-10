@@ -10,9 +10,9 @@ import hashlib
 class RinnaiHomeAssistantIntegration:
     def __init__(self):
         # Rinnai原始配置
-        self.rinnai_host = os.getenv('RINNAI_HOST')
+        self.rinnai_host = os.getenv('RINNAI_HOST', 'mqtt.rinnai.com.cn')
         self.rinnai_port = int(os.getenv('RINNAI_PORT', '8883'))
-        self.rinnai_username = os.getenv('RINNAI_USERNAME')
+        self.rinnai_username = f"a:rinnai:SR:01:SR:{os.getenv('RINNAI_USERNAME')}"
         self.rinnai_password = hashlib.md5(
             os.getenv('RINNAI_PASSWORD').encode('utf-8')).hexdigest()
         self.device_sn = os.getenv('DEVICE_SN')
@@ -58,60 +58,68 @@ class RinnaiHomeAssistantIntegration:
     def on_rinnai_connect(self, client, userdata, flags, rc):
         print(f"连接Rinnai MQTT服务器状态: {rc}")
         if rc == 0:
-            # 林内服务器获取状态主题
-            state_topic = f"rinnai/SR/01/SR/{self.device_sn}/inf/"
-            get_topic = f"rinnai/SR/01/SR/{self.device_sn}/get/"
+            """
+            已知主题:
+            rinnai/SR/01/SR/{device_sn}/sys/
+            rinnai/SR/01/SR/{device_sn}/inf/
+            rinnai/SR/01/SR/{device_sn}/set/
+            rinnai/SR/01/SR/{device_sn}/res/
+            rinnai/SR/01/SR/{device_sn}/get/
+            rinnai/SR/01/SR/{device_sn}/stg/
+
+            """
+            state_topic = f"rinnai/SR/01/SR/{self.device_sn}/#"
             client.subscribe(state_topic)
-            client.subscribe(get_topic)
 
     def on_local_connect(self, client, userdata, flags, rc):
         print(f"连接本地MQTT服务器状态: {rc}")
         if rc == 0:
             # 本地服务器订阅设置主题，区分热水和暖气
             client.subscribe(
-                f"rinnai/SR/01/SR/{self.device_sn}/set/hot_water_temp")
+                f"local_mqtt/{self.device_sn}/set/hot_water_temp")
             client.subscribe(
-                f"rinnai/SR/01/SR/{self.device_sn}/set/heating_temp_nm")
+                f"local_mqtt/{self.device_sn}/set/heating_temp_nm")
 
     def on_rinnai_message(self, client, userdata, msg):
         try:
             payload = msg.payload.decode('utf-8')
             parsed_data = json.loads(payload)
-            print(f"收到Rinnai消息: {parsed_data}")
-            if "enl" in parsed_data:
+            print(f"Rinnai Mqtt: {parsed_data}")
+            if msg.topic.endswith('/inf/'):
+                if "enl" in parsed_data:
 
-                self.device_state = {}
+                    self.device_state = {}
 
-                for param in parsed_data['enl']:
-                    param_id = param['id']
-                    param_data = param['data']
+                    for param in parsed_data['enl']:
+                        param_id = param['id']
+                        param_data = param['data']
 
-                    if param_id == 'operationMode':
-                        self.device_state['operationMode'] = self._get_operation_mode(
-                            param_data)
-                    elif param_id == 'roomTempControl':
-                        self.device_state['roomTempControl'] = f"{int(param_data, 16)}"
-                    elif param_id == 'heatingOutWaterTempControl':
-                        self.device_state['heatingOutWaterTempControl'] = f"{int(param_data, 16)}"
-                    elif param_id == 'burningState':
-                        self.device_state['burningState'] = self._get_burning_state(
-                            param_data)
-                    elif param_id == 'hotWaterTempSetting':
-                        self.device_state['hotWaterTempSetting'] = f"{int(param_data, 16)}"
-                    elif param_id == 'heatingTempSettingNM':
-                        self.device_state['heatingTempSettingNM'] = f"{int(param_data, 16)}"
-                    elif param_id == 'heatingTempSettingHES':
-                        self.device_state['heatingTempSettingHES'] = f"{int(param_data, 16)}"
+                        if param_id == 'operationMode':
+                            self.device_state['operationMode'] = self._get_operation_mode(
+                                param_data)
+                        elif param_id == 'roomTempControl':
+                            self.device_state['roomTempControl'] = f"{int(param_data, 16)}"
+                        elif param_id == 'heatingOutWaterTempControl':
+                            self.device_state['heatingOutWaterTempControl'] = f"{int(param_data, 16)}"
+                        elif param_id == 'burningState':
+                            self.device_state['burningState'] = self._get_burning_state(
+                                param_data)
+                        elif param_id == 'hotWaterTempSetting':
+                            self.device_state['hotWaterTempSetting'] = f"{int(param_data, 16)}"
+                        elif param_id == 'heatingTempSettingNM':
+                            self.device_state['heatingTempSettingNM'] = f"{int(param_data, 16)}"
+                        elif param_id == 'heatingTempSettingHES':
+                            self.device_state['heatingTempSettingHES'] = f"{int(param_data, 16)}"
 
-                # 发布完整状态到本地MQTT
-                self._publish_device_state()
+                    # 发布完整状态到本地MQTT
+                    self._publish_device_state()
         except Exception as e:
             print(f"解析Rinnai消息错误: {e}")
 
     def _publish_device_state(self):
 
         # 发布完整的设备状态到本地MQTT
-        state_topic = f"rinnai/SR/01/SR/{self.device_sn}/state"
+        state_topic = f"local_mqtt/{self.device_sn}/state"
         self.local_client.publish(
             state_topic,
             json.dumps(self.device_state, ensure_ascii=False)
@@ -141,7 +149,7 @@ class RinnaiHomeAssistantIntegration:
 
         # 向林内服务器发布设置温度主题
         request_payload = {
-            "code": "03E9",
+            "code": os.getenv('AUTH_CODE', '03E9'),
             "enl": [
                 {
                     "data": hex(temperature)[2:].upper().zfill(2),
@@ -159,7 +167,7 @@ class RinnaiHomeAssistantIntegration:
         print(f"设置{heat_type}温度为 {temperature}°C")
 
     def _get_operation_mode(self, mode_code):
-        """转换操作模式编码"""
+        """模式映射"""
         mode_mapping = {
             "3": "普通模式"
             "13" "外出模式"
@@ -167,10 +175,17 @@ class RinnaiHomeAssistantIntegration:
         return mode_mapping.get(mode_code, f"未知模式({mode_code})")
 
     def _get_burning_state(self, state_code):
-        """转换燃烧状态"""
+        """
+        燃烧状态映射
+
+        已知状态码:
+        30: 待机中
+        31: 热水启动
+        32: 锅炉点火
+        """
+        
         state_mapping = {
-            "00": "关闭",
-            "30": "预热中",
+            "30": "待机中",
             "31": "点火中",
             "32": "燃烧中",
             "33": "异常"
