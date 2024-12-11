@@ -169,6 +169,7 @@ class RinnaiHomeAssistantIntegration:
     def _process_rinnai_message(self, msg):
         payload = msg.payload.decode('utf-8')
         parsed_data = json.loads(payload)
+        print(f"Rinnai Mqtt: {parsed_data}")
         if msg.topic.endswith('/inf/'):
             if "enl" in parsed_data:
                 self.device_state = {}
