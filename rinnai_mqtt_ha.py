@@ -100,7 +100,7 @@ class RinnaiHomeAssistantIntegration:
             state_topic,
             json.dumps(self.device_state, ensure_ascii=False)
         )
-        print(f"发布设备状态: {self.device_state}")
+        print(f"Publish to local mqtt: {self.device_state}")
 
     def on_local_message(self, client, userdata, msg):
         try:
@@ -112,7 +112,7 @@ class RinnaiHomeAssistantIntegration:
             elif msg.topic.endswith('heating_temp_nm'):
                 self.set_rinnai_temperature('heating', temperature)
         except Exception as e:
-            print(f"处理本地温度设置错误: {e}")
+            print(f"local mqtt set fail: {e}")
 
     def set_rinnai_temperature(self, heat_type, temperature):
 
@@ -121,7 +121,7 @@ class RinnaiHomeAssistantIntegration:
         elif heat_type == 'heating':
             param_id = 'heatingTempSettingNM'
         else:
-            raise ValueError("无效的热水类型")
+            raise ValueError("error heat type")
 
         # 向林内服务器发布设置温度主题
         request_payload = {
@@ -148,7 +148,7 @@ class RinnaiHomeAssistantIntegration:
             "3": "普通模式"
             "13" "外出模式"
         }
-        return mode_mapping.get(mode_code, f"未知模式({mode_code})")
+        return mode_mapping.get(mode_code, f"invalid ({mode_code})")
 
     def _get_burning_state(self, state_code):
         """
@@ -164,7 +164,7 @@ class RinnaiHomeAssistantIntegration:
             "32": "燃烧中",
             "33": "异常"
         }
-        return state_mapping.get(state_code, f"未知状态({state_code})")
+        return state_mapping.get(state_code, f"invalid ({state_code})")
 
     def _process_rinnai_message(self, msg):
         payload = msg.payload.decode('utf-8')

@@ -2,6 +2,10 @@ import paho.mqtt.client as mqtt
 import json
 import uuid
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 class RinnaiHomeAssistantDiscovery:
     def __init__(self):
         self.mqtt_host = os.getenv('LOCAL_MQTT_HOST')
@@ -68,8 +72,8 @@ class RinnaiHomeAssistantDiscovery:
             ("加热出水温度控制", "heatingOutWaterTempControl", "°C"),
             ("燃烧状态", "burningState", None),
             ("热水温度设置", "hotWaterTempSetting", "°C"),
-            ("普通模式加热温度", "heatingTempSettingNM", "°C"),
-            ("HES模式加热温度", "heatingTempSettingHES", "°C")
+            ("地暖温度", "heatingTempSettingNM", "°C"),
+            ("HES加热温度", "heatingTempSettingHES", "°C")
         ]
 
         for label, object_id, unit in sensors:
