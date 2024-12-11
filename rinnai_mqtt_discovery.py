@@ -24,14 +24,6 @@ class RinnaiHomeAssistantDiscovery:
     def generate_config(self, component_type, object_id, name, topic, config_type='sensor', unit=None):
         """
         生成通用配置
-        
-        :param component_type: 组件类型 (sensor, number等)
-        :param object_id: 对象标识
-        :param name: 显示名称
-        :param topic: MQTT主题
-        :param config_type: 配置类型
-        :param unit: 单位
-        :return: 配置主题和配置内容
         """
         base_topic = f"{self.discovery_prefix}/{component_type}/rinnai_{self.device_sn}_{object_id}"
 
@@ -94,7 +86,7 @@ class RinnaiHomeAssistantDiscovery:
         # 温度控制器配置
         temp_controls = [
             ("热水温度", "hotWaterTempSetting",f"rinnai/SR/01/SR/{self.device_sn}/set/hot_water_temp"),
-            ("普通模式加热温度", "heatingTempSettingNM",f"rinnai/SR/01/SR/{self.device_sn}/set/heating_temp_nm")
+            ("地暖温度", "heatingTempSettingNM",f"rinnai/SR/01/SR/{self.device_sn}/set/heating_temp_nm")
         ]
 
         for label, object_id, topic in temp_controls:
