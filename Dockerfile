@@ -11,13 +11,11 @@ COPY . /app
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 设置环境变量（根据需要修改）
-ENV RINNAI_HOST=mqtt.rinnai.com.cn \
-    RINNAI_PORT=8883 \
-    RINNAI_USERNAME=phone \
+ENV RINNAI_USERNAME=phone \
     RINNAI_PASSWORD=password \
     LOCAL_MQTT_HOST=localhost \
-    LOCAL_MQTT_PORT=1883 \
-    DEVICE_SN=123456789
+    LOCAL_MQTT_PORT=1883
+
 
 # 赋予启动脚本执行权限
 RUN chmod +x start.sh
