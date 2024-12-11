@@ -30,7 +30,7 @@ class RinnaiHomeAssistantDiscovery:
         config = {
             "name": name,
             "unique_id": f"{self.unique_id}_{object_id}",
-            "state_topic": f"rinnai/SR/01/SR/{self.device_sn}/state",
+            "state_topic": f"local_mqtt/{self.device_sn}/state",
             "value_template": f"{{{{ value_json.{object_id} }}}}",
             "device": {
                 "identifiers": [self.unique_id],
@@ -85,8 +85,8 @@ class RinnaiHomeAssistantDiscovery:
 
         # 温度控制器配置
         temp_controls = [
-            ("热水温度", "hotWaterTempSetting",f"rinnai/SR/01/SR/{self.device_sn}/set/hot_water_temp"),
-            ("地暖温度", "heatingTempSettingNM",f"rinnai/SR/01/SR/{self.device_sn}/set/heating_temp_nm")
+            ("热水温度", "hotWaterTempSetting",f"local_mqtt/{self.device_sn}/set/hot_water_temp"),
+            ("地暖温度", "heatingTempSettingNM",f"local_mqtt/{self.device_sn}/set/heating_temp_nm")
         ]
 
         for label, object_id, topic in temp_controls:
