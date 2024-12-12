@@ -29,12 +29,12 @@ class RinnaiHomeAssistantDiscovery:
         """
         生成通用配置
         """
-        base_topic = f"{self.discovery_prefix}/{component_type}/rinnai_{self.device_sn}_{object_id}"
+        base_topic = f"{self.discovery_prefix}/{component_type}/rinnai_{object_id}"
 
         config = {
             "name": name,
             "unique_id": f"{self.unique_id}_{object_id}",
-            "state_topic": f"local_mqtt/{self.device_sn}/state",
+            "state_topic": "local_mqtt/rinnai/state",
             "value_template": f"{{{{ value_json.{object_id} }}}}",
             "device": {
                 "identifiers": [self.unique_id],
@@ -89,8 +89,8 @@ class RinnaiHomeAssistantDiscovery:
 
         # 温度控制器配置
         temp_controls = [
-            ("热水温度", "hotWaterTempSetting",f"local_mqtt/{self.device_sn}/set/hot_water_temp"),
-            ("地暖温度", "heatingTempSettingNM",f"local_mqtt/{self.device_sn}/set/heating_temp_nm")
+            ("热水温度", "hotWaterTempSetting", "local_mqtt/rinnai/set/hot_water_temp"),
+            ("地暖温度", "heatingTempSettingNM","local_mqtt/rinnai/set/heating_temp_nm")
         ]
 
         for label, object_id, topic in temp_controls:

@@ -71,23 +71,18 @@ class RinnaiHomeAssistantIntegration:
             rinnai/SR/01/SR/{device_sn}/stg/
 
             """
-            state_topic = f"rinnai/SR/01/SR/{self.device_sn}/#"
+            state_topic = f"rinnai/SR/01/SR/{self.device_sn}/inf/"
             client.subscribe(state_topic)
 
     def on_local_connect(self, client, userdata, flags, rc):
         print(f"连接本地MQTT服务器状态: {rc}")
         if rc == 0:
             # 本地服务器订阅设置主题，区分热水和暖气
-            client.subscribe(
-                f"local_mqtt/{self.device_sn}/set/hot_water_temp")
-            client.subscribe(
-                f"local_mqtt/{self.device_sn}/set/heating_temp_nm")
+            client.subscribe("local_mqtt/rinnai/set/hot_water_temp")
+            client.subscribe("local_mqtt/rinnai/set/heating_temp_nm")
 
     def on_rinnai_message(self, client, userdata, msg):
         try:
-            payload = msg.payload.decode('utf-8')
-            parsed_data = json.loads(payload)
-            print(f"Rinnai Mqtt: {parsed_data}")
             self._process_rinnai_message(msg)
         except Exception as e:
             print(f"解析Rinnai消息错误: {e}")
@@ -95,7 +90,7 @@ class RinnaiHomeAssistantIntegration:
     def _publish_device_state(self):
 
         # 发布完整的设备状态到本地MQTT
-        state_topic = f"local_mqtt/{self.device_sn}/state"
+        state_topic = "local_mqtt/rinnai/state"
         self.local_client.publish(
             state_topic,
             json.dumps(self.device_state, ensure_ascii=False)
@@ -145,8 +140,11 @@ class RinnaiHomeAssistantIntegration:
     def _get_operation_mode(self, mode_code):
         """模式映射"""
         mode_mapping = {
-            "3": "普通模式"
-            "13" "外出模式"
+            "0": "关机",
+            "1": "故障",
+            "2": "待机",
+            "3": "运行",
+            "13":"外出模式"
         }
         return mode_mapping.get(mode_code, f"invalid ({mode_code})")
 
@@ -169,31 +167,30 @@ class RinnaiHomeAssistantIntegration:
     def _process_rinnai_message(self, msg):
         payload = msg.payload.decode('utf-8')
         parsed_data = json.loads(payload)
-        print(f"Rinnai Mqtt: {parsed_data}")
-        if msg.topic.endswith('/inf/'):
-            if "enl" in parsed_data:
-                self.device_state = {}
-                for param in parsed_data['enl']:
-                    param_id = param['id']
-                    param_data = param['data']
+        # if msg.topic.endswith('/inf/'):
+        if "enl" in parsed_data:
+            self.device_state = {}
+            for param in parsed_data['enl']:
+                param_id = param['id']
+                param_data = param['data']
 
-                    if param_id == 'operationMode':
-                        self.device_state['operationMode'] = self._get_operation_mode(
-                            param_data)
-                    elif param_id == 'roomTempControl':
-                        self.device_state['roomTempControl'] = f"{int(param_data, 16)}"
-                    elif param_id == 'heatingOutWaterTempControl':
-                        self.device_state['heatingOutWaterTempControl'] = f"{int(param_data, 16)}"
-                    elif param_id == 'burningState':
-                        self.device_state['burningState'] = self._get_burning_state(
-                            param_data)
-                    elif param_id == 'hotWaterTempSetting':
-                        self.device_state['hotWaterTempSetting'] = f"{int(param_data, 16)}"
-                    elif param_id == 'heatingTempSettingNM':
-                        self.device_state['heatingTempSettingNM'] = f"{int(param_data, 16)}"
-                    elif param_id == 'heatingTempSettingHES':
-                        self.device_state['heatingTempSettingHES'] = f"{int(param_data, 16)}"
-                self._publish_device_state()
+                if param_id == 'operationMode':
+                    self.device_state['operationMode'] = self._get_operation_mode(
+                        param_data)
+                elif param_id == 'roomTempControl':
+                    self.device_state['roomTempControl'] = f"{int(param_data, 16)}"
+                elif param_id == 'heatingOutWaterTempControl':
+                    self.device_state['heatingOutWaterTempControl'] = f"{int(param_data, 16)}"
+                elif param_id == 'burningState':
+                    self.device_state['burningState'] = self._get_burning_state(
+                        param_data)
+                elif param_id == 'hotWaterTempSetting':
+                    self.device_state['hotWaterTempSetting'] = f"{int(param_data, 16)}"
+                elif param_id == 'heatingTempSettingNM':
+                    self.device_state['heatingTempSettingNM'] = f"{int(param_data, 16)}"
+                elif param_id == 'heatingTempSettingHES':
+                    self.device_state['heatingTempSettingHES'] = f"{int(param_data, 16)}"
+            self._publish_device_state()
 
     def start(self):
         # 连接Rinnai MQTT服务器

@@ -45,7 +45,7 @@ class RinnaiHttpProxy:
         response = requests.get(INFO_URL, headers=headers)
         if response.status_code == 200 and response.json().get("success"):
             devices = response.json().get("data").get("list")
-            print(devices[0])
+            print(f"response:{devices[0]}")
             if devices[0].get("online") == "1":
                 self.mac = devices[0].get("mac")
                 self.name = devices[0].get("name")
