@@ -48,11 +48,19 @@ class RinnaiHomeAssistantDiscovery:
         if unit:
             config["unit_of_measurement"] = unit
 
-        if config_type == 'number':
+        if config_type == 'number' & object_id == 'hotWaterTempSetting':
             config.update({
                 "command_topic": topic,
                 "min": 35,
-                "max": 80,
+                "max": 60,
+                "step": 1,
+                "unit_of_measurement": "°C"
+            })
+        elif config_type == 'number' & object_id == 'heatingTempSettingNM' or object_id == 'heatingTempSettingHES':
+            config.update({
+                "command_topic": topic,
+                "min": 45,
+                "max": 70,
                 "step": 1,
                 "unit_of_measurement": "°C"
             })
@@ -67,13 +75,13 @@ class RinnaiHomeAssistantDiscovery:
 
         # 传感器配置
         sensors = [
-            ("操作模式", "operationMode", None),
-            ("室温控制", "roomTempControl", "°C"),
-            ("加热出水温度控制", "heatingOutWaterTempControl", "°C"),
+            # ("室温控制", "roomTempControl", "°C"),
+            # ("出水温度", "heatingOutWaterTempControl", "°C"),
+            ("模式", "operationMode", None),
             ("燃烧状态", "burningState", None),
-            ("热水温度设置", "hotWaterTempSetting", "°C"),
-            ("地暖温度", "heatingTempSettingNM", "°C"),
-            ("HES加热温度", "heatingTempSettingHES", "°C")
+            ("热水温度", "hotWaterTempSetting", "°C"),
+            ("锅炉温度", "heatingTempSettingNM", "°C"),
+            ("锅炉温度/节能", "heatingTempSettingHES", "°C")
         ]
 
         for label, object_id, unit in sensors:
@@ -87,10 +95,21 @@ class RinnaiHomeAssistantDiscovery:
             )
             self.client.publish(topic, config, retain=True)
 
-        # 温度控制器配置
+        #温度控制
         temp_controls = [
-            ("热水温度", "hotWaterTempSetting", "local_mqtt/rinnai/set/hot_water_temp"),
-            ("地暖温度", "heatingTempSettingNM","local_mqtt/rinnai/set/heating_temp_nm")
+            ("热水温度", "hotWaterTempSetting",
+            "local_mqtt/rinnai/set/temp/hotWaterTempSetting"),
+            ("锅炉温度", "heatingTempSettingNM",
+            "local_mqtt/rinnai/set/temp/heatingTempSettingNM")
+            ("锅炉温度/节能", "heatingTempSettingHES",
+            "local_mqtt/rinnai/set/temp/heatingTempSettingHES")
+        ]
+        #模式控制
+        mode_controls = [
+            ("节能模式", "energySavingMode", "local_mqtt/rinnai/set/mode/energySavingMode"),
+            ("外出模式", "outdoorMode", "local_mqtt/rinnai/set/mode/outdoorMode"),
+            ("快速采暖", "rapidHeating", "local_mqtt/rinnai/set/mode/rapidHeating"),
+            ("采暖开关", "summerWinter", "local_mqtt/rinnai/set/mode/summerWinter")
         ]
 
         for label, object_id, topic in temp_controls:
