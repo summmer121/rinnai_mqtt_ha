@@ -4,12 +4,14 @@ import os
 import hashlib
 
 load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.disabled = os.getenv('LOGGING', 'False') == 'true'
 
 HOST = "https://iot.rinnai.com.cn/app"
 LOGIN_URL = f"{HOST}/V1/login"
 INFO_URL = f"{HOST}/V1/device/list"
-# 林内智家app内置acessKey
-AK = "A39C66706B83CCF0C0EE3CB23A39454D"
+AK = "A39C66706B83CCF0C0EE3CB23A39454D"  # 林内智家app内置acessKey
 
 class RinnaiHttpProxy:
     def __init__(self, username, password):
@@ -34,8 +36,8 @@ class RinnaiHttpProxy:
         }
         response = requests.get(LOGIN_URL, params=params)
         if response.status_code == 200 and response.json().get("success") !=False:
-            print(response.json())
             self.token = response.json().get("data").get("token")
+            logger.info(f"login success, token: {self.token}")
             return True
         return False
 
@@ -45,7 +47,7 @@ class RinnaiHttpProxy:
         response = requests.get(INFO_URL, headers=headers)
         if response.status_code == 200 and response.json().get("success"):
             devices = response.json().get("data").get("list")
-            print(f"response:{devices[0]}")
+            logger.info(f"devices: {devices}")
             if devices[0].get("online") == "1":
                 self.mac = devices[0].get("mac")
                 self.name = devices[0].get("name")
@@ -55,8 +57,7 @@ class RinnaiHttpProxy:
                 return True
         return None
 
-# Example usage
-if __name__ == "__main__":
+def env_setup():
     dotenv_path = '.env'
     Rinnai = RinnaiHttpProxy(
         os.getenv('RINNAI_USERNAME'), os.getenv('RINNAI_PASSWORD'))
@@ -66,3 +67,7 @@ if __name__ == "__main__":
     set_key(dotenv_path, "AUTH_CODE", Rinnai.authCode, quote_mode="never")
     set_key(dotenv_path, "DEVICE_TYPE", Rinnai.deviceType, quote_mode="never")
     set_key(dotenv_path, "DEVICE_ID", Rinnai.deviceId, quote_mode="never")
+
+# Example usage
+if __name__ == "__main__":
+    env_setup()

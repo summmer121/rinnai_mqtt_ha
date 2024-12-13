@@ -6,11 +6,16 @@ import time
 import os
 import hashlib
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.disabled = os.getenv('LOGGING', 'False') == 'true'
+
 class RinnaiHomeAssistantIntegration:
     def __init__(self):
-        # Rinnai原始配置
+        # Rinnai mqtt连接配置
         password = os.getenv('RINNAI_PASSWORD')
         print(f"RINNAI_PASSWORD: {password}")
         self.rinnai_host = os.getenv('RINNAI_HOST', 'mqtt.rinnai.com.cn')
@@ -30,7 +35,7 @@ class RinnaiHomeAssistantIntegration:
         # 本地MQTT客户端
         self.local_client = self._create_local_client()
 
-        # 状态存储
+        # 设备状态和耗气量
         self.device_state = {}
         self.gas_consumption = {}
 
@@ -60,7 +65,7 @@ class RinnaiHomeAssistantIntegration:
         return client
 
     def on_rinnai_connect(self, client, userdata, flags, rc):
-        print(f"连接Rinnai MQTT服务器状态: {rc}")
+        logging.info(f"rinnai mqtt connect status: {rc}")
         if rc == 0:
             """
             已知主题:
@@ -76,7 +81,7 @@ class RinnaiHomeAssistantIntegration:
             client.subscribe(f"rinnai/SR/01/SR/{self.device_sn}/stg/")
 
     def on_local_connect(self, client, userdata, flags, rc):
-        print(f"连接本地MQTT服务器状态: {rc}")
+        logging.info(f"local mqtt connect status: {rc}")
         if rc == 0:
             # 本地服务器订阅设置主题，区分热水和暖气
             client.subscribe("local_mqtt/rinnai/set/temp/hotWaterTempSetting")
@@ -92,7 +97,7 @@ class RinnaiHomeAssistantIntegration:
         try:
             self._process_rinnai_message(msg)
         except Exception as e:
-            print(f"解析Rinnai消息错误: {e}")
+            logging.info(f"Rinnai msg error: {e}")
 
     def _publish_device_state(self):
 
@@ -102,7 +107,7 @@ class RinnaiHomeAssistantIntegration:
             state_topic,
             json.dumps(self.device_state, ensure_ascii=False)
         )
-        print(f"Publish to local mqtt: {self.device_state}")
+        logging.info(f"Publish to local mqtt: {self.device_state}")
     
     def _publish_gas_consumption(self):
 
@@ -112,7 +117,7 @@ class RinnaiHomeAssistantIntegration:
             state_topic,
             json.dumps(self.gas_consumption, ensure_ascii=False)
         )
-        print(f"Publish to local mqtt: {self.gas_consumption}")
+        logging.info(f"Publish to local mqtt: {self.gas_consumption}")
 
     def on_local_message(self, client, userdata, msg):
         try:
@@ -125,7 +130,7 @@ class RinnaiHomeAssistantIntegration:
                 mode = msg.topic.split('/')[-1]
                 self.set_rinnai_mode(mode)
         except Exception as e:
-            print(f"local mqtt set fail: {e}")
+            logging.info(f"local mqtt set fail: {e}")
 
     def set_rinnai_temperature(self, heat_type, temperature):
         if heat_type:
@@ -174,7 +179,7 @@ class RinnaiHomeAssistantIntegration:
         set_topic = f"rinnai/SR/01/SR/{self.device_sn}/set/"
         self.rinnai_client.publish(
             set_topic, json.dumps(request_payload), qos=1)
-        print(f"设置 {mode}")
+        logging.info(f"SET {mode}")
 
     def _get_operation_mode(self, mode_code):
         """模式映射"""

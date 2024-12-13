@@ -3,16 +3,19 @@ import json
 import uuid
 import os
 from dotenv import load_dotenv
+import logging
 
 load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.disabled = os.getenv('LOGGING', 'False') == 'true'
 
 class RinnaiHomeAssistantDiscovery:
     def __init__(self):
         self.mqtt_host = os.getenv('LOCAL_MQTT_HOST')
         self.mqtt_port = int(os.getenv('LOCAL_MQTT_PORT', '1883'))
-        self.device_sn = os.getenv('DEVICE_SN')
         # 唯一标识符
-        self.unique_id = f"rinnai_{self.device_sn}"
+        self.unique_id = f"rinnai_heater"
         # MQTT客户端
         self.client = mqtt.Client(
             client_id=f"ha_discovery_{str(uuid.uuid4())[:8]}",
@@ -23,7 +26,7 @@ class RinnaiHomeAssistantDiscovery:
         self.discovery_prefix = "homeassistant"
 
     def on_connect(self, client, userdata, flags, rc):
-        print(f"连接Home Assistant MQTT: {rc}")
+        logger.info(f"HomeAssistant MQTT connect status: {rc}")
 
     def generate_config(self, component_type, object_id, name, topic, config_type='sensor', unit=None):
         """
