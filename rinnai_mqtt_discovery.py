@@ -43,10 +43,17 @@ class RinnaiHomeAssistantDiscovery:
                 "model": "G56"
             }
         }
-
         # 添加单位
         if unit:
             config["unit_of_measurement"] = unit
+
+        if config_type == 'sensor' and object_id == 'gasConsumption':
+            config.update({
+                "state_topic": "local_mqtt/rinnai/gas",
+                "unit_of_measurement": "m³",
+                "device_class": "gas"
+            })
+
 
         if config_type == 'number' and object_id == 'hotWaterTempSetting':
             config.update({

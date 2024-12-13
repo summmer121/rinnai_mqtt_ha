@@ -32,6 +32,7 @@ class RinnaiHomeAssistantIntegration:
 
         # 状态存储
         self.device_state = {}
+        self.gas_consumption = {}
 
     def _create_rinnai_client(self):
         client = mqtt.Client(
@@ -102,6 +103,16 @@ class RinnaiHomeAssistantIntegration:
             json.dumps(self.device_state, ensure_ascii=False)
         )
         print(f"Publish to local mqtt: {self.device_state}")
+    
+    def _publish_gas_consumption(self):
+
+            # 发布完整的设备状态到本地MQTT
+        gas_topic = "local_mqtt/rinnai/gas"
+        self.local_client.publish(
+            state_topic,
+            json.dumps(self.gas_consumption, ensure_ascii=False)
+        )
+        print(f"Publish to local mqtt: {self.gas_consumption}")
 
     def on_local_message(self, client, userdata, msg):
         try:
@@ -193,7 +204,7 @@ class RinnaiHomeAssistantIntegration:
         
         state_mapping = {
             "30": "待机中",
-            "31": "点火中",
+            "31": "烧水中",
             "32": "燃烧中",
             "33": "异常"
         }
@@ -204,6 +215,7 @@ class RinnaiHomeAssistantIntegration:
         parsed_data = json.loads(payload)
         # if msg.topic.endswith('/inf/'):
         self.device_state = {}
+        self.gas_consumption = {}
         if "enl" in parsed_data:        
             for param in parsed_data['enl']:
                 param_id = param['id']
@@ -230,10 +242,9 @@ class RinnaiHomeAssistantIntegration:
             for param in parsed_data['egy']:
                 gas_consumption = param.get('gasConsumption')
                 if gas_consumption is not None:
-                    print(f"gasConsumption:{param}")
-                    self.device_state['gasConsumption'] = f"{int(gas_consumption, 16)/1000000}"
+                    self.gas_consumption['gasConsumption'] = f"{int(gas_consumption, 16)/1000000}"
 
-            self._publish_device_state()
+            self._publish_gas_consumption()
     def start(self):
         # 连接Rinnai MQTT服务器
         self.rinnai_client.connect(
