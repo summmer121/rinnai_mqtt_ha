@@ -38,9 +38,9 @@ class RinnaiHomeAssistantDiscovery:
             "value_template": f"{{{{ value_json.{object_id} }}}}",
             "device": {
                 "identifiers": [self.unique_id],
-                "name": "Rinnai Water Heater",
+                "name": "Rinnai Heater",
                 "manufacturer": "Rinnai",
-                "model": "Smart Water Heater"
+                "model": "G56"
             }
         }
 
@@ -48,7 +48,7 @@ class RinnaiHomeAssistantDiscovery:
         if unit:
             config["unit_of_measurement"] = unit
 
-        if config_type == 'number' & object_id == 'hotWaterTempSetting':
+        if config_type == 'number' and object_id == 'hotWaterTempSetting':
             config.update({
                 "command_topic": topic,
                 "min": 35,
@@ -56,7 +56,7 @@ class RinnaiHomeAssistantDiscovery:
                 "step": 1,
                 "unit_of_measurement": "°C"
             })
-        elif config_type == 'number' & object_id == 'heatingTempSettingNM' or object_id == 'heatingTempSettingHES':
+        elif config_type == 'number' and (object_id == 'heatingTempSettingNM' or object_id == 'heatingTempSettingHES'):
             config.update({
                 "command_topic": topic,
                 "min": 45,
@@ -64,8 +64,40 @@ class RinnaiHomeAssistantDiscovery:
                 "step": 1,
                 "unit_of_measurement": "°C"
             })
+        elif config_type == 'switch':
+            config.update({
+                "state_topic": "local_mqtt/rinnai/state",
+                "command_topic": topic,
+                "payload_on": "ON",
+                "payload_off": "OFF",
+                "value_template": self.get_switch_value_template(object_id)
+            })
 
         return f"{base_topic}/config", json.dumps(config)
+
+
+    def get_switch_value_template(self, object_id):
+        """
+        根据 object_id 返回对应的 value_template，用于解析 switch 的状态
+        """
+        # 定义模式对应的 operationMode 值集合
+        mode_codes = {
+            "energySavingMode": ["采暖节能", "快速采暖/节能"],
+            "outdoorMode": ["采暖外出", "快速采暖/外出"],
+            "rapidHeating": ["快速采暖", "快速采暖/节能", "快速采暖/外出", "快速采暖/预约"],
+        }
+
+        if object_id == "summerWinter":
+            # 对于采暖开关，operationMode 为 '0', '1', '2' 时为 OFF，其它为 ON
+            return "{% if value_json.operationMode in ['关机', '采暖关闭', '休眠'] %}OFF{% else %}ON{% endif %}"
+        else:
+            codes = mode_codes.get(object_id, [])
+            # 构建用于判断的模板字符串
+            codes_string = ','.join(f"'{code}'" for code in codes)
+            return f"{{% if value_json.operationMode in [{codes_string}] %}}ON{{% else %}}OFF{{% endif %}}"
+
+
+
 
     def publish_discovery_configs(self):
         """
@@ -81,7 +113,9 @@ class RinnaiHomeAssistantDiscovery:
             ("燃烧状态", "burningState", None),
             ("热水温度", "hotWaterTempSetting", "°C"),
             ("锅炉温度", "heatingTempSettingNM", "°C"),
-            ("锅炉温度/节能", "heatingTempSettingHES", "°C")
+            ("锅炉温度/节能", "heatingTempSettingHES", "°C"),
+            ("耗气量", "gasConsumption", "m³")
+
         ]
 
         for label, object_id, unit in sensors:
@@ -97,20 +131,11 @@ class RinnaiHomeAssistantDiscovery:
 
         #温度控制
         temp_controls = [
-            ("热水温度", "hotWaterTempSetting",
-            "local_mqtt/rinnai/set/temp/hotWaterTempSetting"),
-            ("锅炉温度", "heatingTempSettingNM",
-            "local_mqtt/rinnai/set/temp/heatingTempSettingNM")
-            ("锅炉温度/节能", "heatingTempSettingHES",
-            "local_mqtt/rinnai/set/temp/heatingTempSettingHES")
+            ("热水温度", "hotWaterTempSetting","local_mqtt/rinnai/set/temp/hotWaterTempSetting"),
+            ("锅炉温度", "heatingTempSettingNM","local_mqtt/rinnai/set/temp/heatingTempSettingNM"),
+            ("锅炉温度/节能", "heatingTempSettingHES","local_mqtt/rinnai/set/temp/heatingTempSettingHES")
         ]
-        #模式控制
-        mode_controls = [
-            ("节能模式", "energySavingMode", "local_mqtt/rinnai/set/mode/energySavingMode"),
-            ("外出模式", "outdoorMode", "local_mqtt/rinnai/set/mode/outdoorMode"),
-            ("快速采暖", "rapidHeating", "local_mqtt/rinnai/set/mode/rapidHeating"),
-            ("采暖开关", "summerWinter", "local_mqtt/rinnai/set/mode/summerWinter")
-        ]
+
 
         for label, object_id, topic in temp_controls:
             number_topic, number_config = self.generate_config(
@@ -121,6 +146,24 @@ class RinnaiHomeAssistantDiscovery:
                 'number'
             )
             self.client.publish(number_topic, number_config, retain=True)
+
+        # 模式控制
+        mode_controls = [
+            ("节能模式", "energySavingMode", "local_mqtt/rinnai/set/mode/energySavingMode"),
+            ("外出模式", "outdoorMode", "local_mqtt/rinnai/set/mode/outdoorMode"),
+            ("快速采暖", "rapidHeating", "local_mqtt/rinnai/set/mode/rapidHeating"),
+            ("采暖开关", "summerWinter", "local_mqtt/rinnai/set/mode/summerWinter")
+        ]
+
+        for label, object_id, topic in mode_controls:
+            switch_topic, switch_config = self.generate_config(
+                'switch',
+                object_id,
+                f"Rinnai {label}",
+                topic,
+                'switch'
+            )
+            self.client.publish(switch_topic, switch_config, retain=True)
 
         self.client.disconnect()
 

@@ -229,7 +229,9 @@ class RinnaiHomeAssistantIntegration:
         elif "egy" in parsed_data:
             for param in parsed_data['egy']:
                 gas_consumption = param.get('gasConsumption')
-                self.device_state['gasConsumption'] = f"{int(gasConsumption, 16)/1000000}"
+                if gas_consumption is not None:
+                    print(f"gasConsumption:{param}")
+                    self.device_state['gasConsumption'] = f"{int(gas_consumption, 16)/1000000}"
 
             self._publish_device_state()
     def start(self):
