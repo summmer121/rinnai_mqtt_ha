@@ -114,7 +114,7 @@ class RinnaiHomeAssistantIntegration:
             # 发布完整的设备状态到本地MQTT
         gas_topic = "local_mqtt/rinnai/gas"
         self.local_client.publish(
-            state_topic,
+            gas_topic,
             json.dumps(self.gas_consumption, ensure_ascii=False)
         )
         logging.info(f"Publish to local mqtt: {self.gas_consumption}")
