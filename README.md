@@ -14,6 +14,7 @@
 - RINNAI_USERNAME=yourphone
 - RINNAI_PASSWORD=yourpassword
 - LOCAL_MQTT_HOST=yourhamqtt
+- LOGGING=True #是否开启日志
 ```
 
 
@@ -23,7 +24,8 @@ docker run -d \
   --name rinnai_mqtt_ha \
   -e RINNAI_USERNAME=user \
   -e RINNAI_PASSWORD=pass \
-  -e LOCAL_MQTT_HOST=localhost 
+  -e LOCAL_MQTT_HOST=localhost \
+  -e LOGGING=True
   ghcr.io/palafin02back/rinnai_mqtt_ha:release
 ```
 
@@ -37,6 +39,7 @@ services:
     environment:
       RINNAI_USERNAME: user
       RINNAI_PASSWORD: pass
+      LOGGING: True
       LOCAL_MQTT_HOST: localhost  # 本地mqtt地址
 ```
 # 效果展示
