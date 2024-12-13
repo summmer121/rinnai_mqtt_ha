@@ -7,26 +7,23 @@
 "classIDName": "RBS-**G56系列",
 "classIDShow": "G56"
 ```
-中转林内智家mqtt通知到HA,实现可以在HA查看锅炉状态和调整温度，其他功能可以自行修改
-需要自己抓包获取信息配置，
-- DEVICE_ID 为设备id，可抓包获取
-- RINNAI_HOST 已知为 `mqtt.rinnai.com.cn`
-- RINNAI_PORT 已知为 `8883`
-- RINNAI_USERNAME 已知为 `a:rinnai:SR:01:SR:手机号`
-- RINNAI_PASSWORD 需抓包  api/v1/login
-- DEVICE_SN 已知为 设备对应的mac地址
+## update
+- 解包了林内智家apk,对一些模式描述进行了优化，`RBS-**G56`系列应该可以免抓包直接使用用户名+密码使用了
+- 中转林内智家mqtt通知到HA,实现可以在HA查看锅炉状态和调整温度，获取锅炉耗气量，其他功能可以自行修改
+```
+- RINNAI_USERNAME=yourphone
+- RINNAI_PASSWORD=yourpassword
+- LOCAL_MQTT_HOST=yourhamqtt
+```
+
 
 ## docker run 
 ```
 docker run -d \
   --name rinnai_mqtt_ha \
-  -e DEVICE_ID=000000 \
-  -e RINNAI_HOST=localhost \
-  -e RINNAI_PORT=8883 \
   -e RINNAI_USERNAME=user \
   -e RINNAI_PASSWORD=pass \
-  -e LOCAL_MQTT_HOST=localhost \
-  -e LOCAL_MQTT_PORT=1883 \
+  -e LOCAL_MQTT_HOST=localhost 
   ghcr.io/palafin02back/rinnai_mqtt_ha:release
 ```
 
@@ -38,13 +35,12 @@ services:
     image: ghcr.io/palafin02back/rinnai_mqtt_ha:release
     container_name: rinnai_mqtt_ha
     environment:
-      DEVICE_ID: 000000    # 设备id
-      RINNAI_HOST: localhost  
-      RINNAI_PORT: 8883
       RINNAI_USERNAME: user
       RINNAI_PASSWORD: pass
       LOCAL_MQTT_HOST: localhost  # 本地mqtt地址
-      LOCAL_MQTT_PORT: 1883
 ```
+# 效果展示
 HA中MQTT可以自行发现
-![image](https://github.com/user-attachments/assets/ac388675-535c-4908-aeb8-4aefaa4a204a)
+![image](https://github.com/user-attachments/assets/4ec03ab1-56ab-4574-9f59-13eea7ad464c)
+
+
