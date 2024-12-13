@@ -17,7 +17,6 @@ class RinnaiHomeAssistantIntegration:
     def __init__(self):
         # Rinnai mqtt连接配置
         password = os.getenv('RINNAI_PASSWORD')
-        print(f"RINNAI_PASSWORD: {password}")
         self.rinnai_host = os.getenv('RINNAI_HOST', 'mqtt.rinnai.com.cn')
         self.rinnai_port = int(os.getenv('RINNAI_PORT', '8883'))
         self.rinnai_username = f"a:rinnai:SR:01:SR:{os.getenv('RINNAI_USERNAME')}"
