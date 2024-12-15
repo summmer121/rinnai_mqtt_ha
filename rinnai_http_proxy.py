@@ -2,6 +2,7 @@ import requests
 from dotenv import load_dotenv, set_key
 import os
 import hashlib
+import logging
 
 load_dotenv()
 logging.basicConfig(level=logging.INFO)
