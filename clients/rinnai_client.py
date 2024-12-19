@@ -11,6 +11,7 @@ class RinnaiClient(MQTTClientBase):
         self.config = config
         self.message_processor = message_processor
         self.topics = config.get_rinnai_topics()
+        logging.info(f"Rinnai topics: {self.topics}")
 
         # Configure TLS
         self.client.tls_set(
@@ -19,7 +20,7 @@ class RinnaiClient(MQTTClientBase):
         )
         self.client.tls_insecure_set(True)
         self.client.username_pw_set(
-            config.RINNAI_USERNAME, config.RINNAI_PASSWORD)
+            self.config.RINNAI_USERNAME, self.config.RINNAI_PASSWORD)
 
     def on_connect(self, client, userdata, flags, rc):
         logging.info(f"Rinnai MQTT connect status: {rc}")

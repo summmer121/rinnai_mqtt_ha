@@ -35,11 +35,11 @@ class MessageProcessor:
                 f"Invalid hex value for {param_name}: {value}") from e
 
     def _get_operation_mode(self, mode_code: str) -> str:
-        mode_mapping = const.MODE_MAPPING
+        mode_mapping = const.OPERATION_MODES
         return mode_mapping.get(mode_code, f"invalid ({mode_code})")
 
     def _get_burning_state(self, state_code: str) -> str:
-        state_mapping = const.BURNING_STATE_MAPPING
+        state_mapping = const.BURNING_STATES
         return state_mapping.get(state_code, f"invalid ({state_code})")
 
     def _process_device_info(self, parsed_data: Dict[str, Any]) -> None:

@@ -60,10 +60,7 @@ class RinnaiHttpClient:
         if self.login():
             device_info = self.get_devices()
             if device_info:
-                self.config.DEVICE_SN = device_info["mac"]
-                self.config.AUTH_CODE = device_info["authCode"]
-                self.config.DEVICE_TYPE = device_info["deviceType"]
-            return True
+                return True
         return False
 
 # def main():

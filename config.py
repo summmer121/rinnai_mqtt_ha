@@ -33,6 +33,20 @@ class Config:
         }
 
     @classmethod
+    def update_device_sn(cls, device_sn):
+        cls.DEVICE_SN = device_sn
+    
+    @classmethod
+    def update_auth_code(cls, auth_code):
+        cls.AUTH_CODE = auth_code
+    
+    @classmethod
+    def update_device_type(cls, device_type):
+        cls.DEVICE_TYPE = device_type
+
+
+
+    @classmethod
     def get_local_topics(cls):
         return {
             "hotWaterTempSetting": "local_mqtt/rinnai/set/temp/hotWaterTempSetting",

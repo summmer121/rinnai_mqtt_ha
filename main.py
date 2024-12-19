@@ -19,14 +19,21 @@ def main():
         message_processor = MessageProcessor()
 
         # Initialize clients
-        rinnai_client = RinnaiClient(config, message_processor)
-        local_client = LocalClient(config, rinnai_client)
         rinnai_http_client = RinnaiHttpClient(config)
-        rinnai_ha_discovery = RinnaiHomeAssistantDiscovery(config)
 
         if not rinnai_http_client.init_data():
             logger.error("Failed to initialize Rinnai HTTP client data.")
             return
+        else:
+            config.update_device_sn(rinnai_http_client.get_device_info().get("mac"))
+            config.update_device_type(rinnai_http_client.get_device_info().get("deviceType"))
+            config.update_auth_code(rinnai_http_client.get_device_info().get("authCode"))
+            logger.info(f"Current device info: {rinnai_http_client.get_device_info()}")
+        
+        rinnai_ha_discovery = RinnaiHomeAssistantDiscovery(config)
+        rinnai_client = RinnaiClient(config, message_processor)
+        local_client = LocalClient(config, rinnai_client)
+
         # Publish Home Assistant discovery configurations
         rinnai_ha_discovery.publish_discovery_configs()
         # Connect to MQTT brokers
