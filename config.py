@@ -1,0 +1,48 @@
+import os
+import hashlib
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+class Config:
+    # Rinnai MQTT settings
+    RINNAI_HTTP_USERNAME = os.getenv('RINNAI_USERNAME')
+    RINNAI_HOST = os.getenv('RINNAI_HOST', 'mqtt.rinnai.com.cn')
+    RINNAI_PORT = int(os.getenv('RINNAI_PORT', '8883'))
+    RINNAI_USERNAME = f"a:rinnai:SR:01:SR:{os.getenv('RINNAI_USERNAME')}"
+    RINNAI_PASSWORD = str.upper(
+        hashlib.md5(os.getenv('RINNAI_PASSWORD').encode('utf-8')).hexdigest())
+    DEVICE_SN = None
+    AUTH_CODE = None
+    DEVICE_TYPE = None
+
+    # Local MQTT settings
+    LOCAL_MQTT_HOST = os.getenv('LOCAL_MQTT_HOST')
+    LOCAL_MQTT_PORT = int(os.getenv('LOCAL_MQTT_PORT', '1883'))
+    LOGGING = os.getenv('LOGGING', 'False')
+
+
+    # Topic structures
+    @classmethod
+    def get_rinnai_topics(cls):
+        return {
+            "inf": f"rinnai/SR/01/SR/{cls.DEVICE_SN}/inf/",
+            "stg": f"rinnai/SR/01/SR/{cls.DEVICE_SN}/stg/",
+            "set": f"rinnai/SR/01/SR/{cls.DEVICE_SN}/set/"
+        }
+
+    @classmethod
+    def get_local_topics(cls):
+        return {
+            "hotWaterTempSetting": "local_mqtt/rinnai/set/temp/hotWaterTempSetting",
+            "heatingTempSettingNM": "local_mqtt/rinnai/set/temp/heatingTempSettingNM",
+            "heatingTempSettingHES": "local_mqtt/rinnai/set/temp/heatingTempSetting",
+            "energySavingMode": "local_mqtt/rinnai/set/mode/energySavingMode",
+            "outdoorMode": "local_mqtt/rinnai/set/mode/outdoorMode",
+            "rapidHeating": "local_mqtt/rinnai/set/mode/rapidHeating",
+            "summerWinter": "local_mqtt/rinnai/set/mode/summerWinter",
+            "state": "local_mqtt/rinnai/state",
+            "gas": "local_mqtt/rinnai/usage/gas",
+            "supplyTime": "local_mqtt/rinnai/usage/supplyTime"
+        }
