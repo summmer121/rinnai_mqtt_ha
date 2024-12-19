@@ -51,7 +51,7 @@ class Config:
         return {
             "hotWaterTempSetting": "local_mqtt/rinnai/set/temp/hotWaterTempSetting",
             "heatingTempSettingNM": "local_mqtt/rinnai/set/temp/heatingTempSettingNM",
-            "heatingTempSettingHES": "local_mqtt/rinnai/set/temp/heatingTempSetting",
+            "heatingTempSettingHES": "local_mqtt/rinnai/set/temp/heatingTempSettingHES",
             "energySavingMode": "local_mqtt/rinnai/set/mode/energySavingMode",
             "outdoorMode": "local_mqtt/rinnai/set/mode/outdoorMode",
             "rapidHeating": "local_mqtt/rinnai/set/mode/rapidHeating",

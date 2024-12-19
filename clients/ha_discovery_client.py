@@ -132,9 +132,9 @@ class RinnaiHomeAssistantDiscovery(MQTTClientBase):
 
         #温度控制
         temp_controls = [
-            ("热水温度", "hotWaterTempSetting","local_mqtt/rinnai/set/temp/hotWaterTempSetting"),
-            ("锅炉温度", "heatingTempSettingNM","local_mqtt/rinnai/set/temp/heatingTempSettingNM"),
-            ("锅炉温度/节能", "heatingTempSettingHES","local_mqtt/rinnai/set/temp/heatingTempSettingHES")
+            ("热水温度", "hotWaterTempSetting",self.config.get_local_topics().get("hotWaterTempSetting")),
+            ("锅炉温度", "heatingTempSettingNM",self.config.get_local_topics().get("heatingTempSettingNM")),
+            ("锅炉温度/节能", "heatingTempSettingHES",self.config.get_local_topics().get("heatingTempSettingHES"))
         ]
 
 
@@ -150,10 +150,10 @@ class RinnaiHomeAssistantDiscovery(MQTTClientBase):
 
         # 模式控制
         mode_controls = [
-            ("节能模式", "energySavingMode", "local_mqtt/rinnai/set/mode/energySavingMode"),
-            ("外出模式", "outdoorMode", "local_mqtt/rinnai/set/mode/outdoorMode"),
-            ("快速采暖", "rapidHeating", "local_mqtt/rinnai/set/mode/rapidHeating"),
-            ("采暖开关", "summerWinter", "local_mqtt/rinnai/set/mode/summerWinter")
+            ("节能模式", "energySavingMode", self.config.get_local_topics().get("energySavingMode")),
+            ("外出模式", "outdoorMode", self.config.get_local_topics().get("outdoorMode")),
+            ("快速采暖", "rapidHeating", self.config.get_local_topics().get("rapidHeating")),
+            ("采暖开关", "summerWinter", self.config.get_local_topics().get("summerWinter"))
         ]
 
         for label, object_id, topic in mode_controls:
