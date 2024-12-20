@@ -80,7 +80,7 @@ class RinnaiClient(MQTTClientBase):
 
     def set_default_status(self):
         default_status = {'enl': []}
-        for key, value in const.INIT_STATUS.items():
+        for key, value in self.config.INIT_STATUS.items():
             default_status['enl'].append({'id': key, 'data': value})
         self.message_processor._process_device_info(default_status)
-        self.notify_observers()
+        self.message_processor.notify_observers()
