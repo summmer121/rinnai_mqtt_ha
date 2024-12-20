@@ -28,7 +28,7 @@ class RinnaiClient(MQTTClientBase):
             for topic in self.topics.values():
                 self.subscribe(topic)
         
-        self.set_default_status()
+        # self.set_default_status()
         
 
 
