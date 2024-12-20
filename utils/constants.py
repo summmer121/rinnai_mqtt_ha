@@ -52,5 +52,6 @@ STATE_PARAMETERS = {
 HOST = "https://iot.rinnai.com.cn/app"
 LOGIN_URL = f"{HOST}/V1/login"
 INFO_URL = f"{HOST}/V1/device/list"
+PROCESS_PARAMETER_URL = f"{HOST}/V1/device/processParameter"
 # 林内智家app内置accessKey
 AK = "A39C66706B83CCF0C0EE3CB23A39454D" 

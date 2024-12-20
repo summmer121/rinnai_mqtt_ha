@@ -27,6 +27,10 @@ class RinnaiClient(MQTTClientBase):
         if rc == 0:
             for topic in self.topics.values():
                 self.subscribe(topic)
+        
+        self.set_default_status()
+        
+
 
     def on_message(self, client, userdata, msg):
         try:
@@ -73,3 +77,10 @@ class RinnaiClient(MQTTClientBase):
         }
         self.publish(self.topics["set"], json.dumps(request_payload), qos=1)
         logging.info(f"Set mode to: {mode}")
+
+    def set_default_status(self):
+        default_status = {'enl': []}
+        for key, value in const.INIT_STATUS.items():
+            default_status['enl'].append({'id': key, 'data': value})
+        self.message_processor._process_device_info(default_status)
+        self.notify_observers()

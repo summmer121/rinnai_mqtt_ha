@@ -28,7 +28,11 @@ def main():
             config.update_device_sn(rinnai_http_client.get_device_info().get("mac"))
             config.update_device_type(rinnai_http_client.get_device_info().get("deviceType"))
             config.update_auth_code(rinnai_http_client.get_device_info().get("authCode"))
+            config.update_init_status(
+                rinnai_http_client.get_init_param())
             logger.info(f"Current device info: {rinnai_http_client.get_device_info()}")
+            logger.info(
+                f"Current device defalut info: {config.INIT_STATUS}")
         
         rinnai_ha_discovery = RinnaiHomeAssistantDiscovery(config)
         rinnai_client = RinnaiClient(config, message_processor)

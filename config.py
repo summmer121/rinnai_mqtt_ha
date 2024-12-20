@@ -16,6 +16,7 @@ class Config:
     DEVICE_SN = None
     AUTH_CODE = None
     DEVICE_TYPE = None
+    INIT_STATUS = None
 
     # Local MQTT settings
     LOCAL_MQTT_HOST = os.getenv('LOCAL_MQTT_HOST')
@@ -44,6 +45,9 @@ class Config:
     def update_device_type(cls, device_type):
         cls.DEVICE_TYPE = device_type
 
+    @classmethod
+    def update_init_status(cls, init_status):
+        cls.INIT_STATUS = init_status
 
 
     @classmethod

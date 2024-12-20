@@ -16,6 +16,7 @@ class RinnaiHttpClient:
             "deviceType": None,
             "deviceId": None
         }
+        self.init_param = {}
 
     def login(self):
         params = {
@@ -53,13 +54,33 @@ class RinnaiHttpClient:
         logging.error("No devices found or device is offline")
         return None
 
+    def get_process_parameter(self):
+        headers = {"Authorization": f"Bearer {self.token}"}
+        if not self.device_info.get("deviceId"):
+            logging.error("Device ID not found")
+            return None
+        params = {"deviceId": f"{self.device_info.get('deviceId')}"}
+        response = requests.get(const.PROCESS_PARAMETER_URL, params=params,headers=headers)
+        if response.status_code == 200 and response.json().get("success"):
+            data = response.json().get("data")
+            self.init_param = {key: data[key]
+                                for key in const.STATE_PARAMETERS if key in data}
+            return self.init_param
+        logging.error("Failed to retrieve process parameters")
+        return None
+
+
     def get_device_info(self):
         return self.device_info
+    
+    def get_init_param(self):
+        return self.init_param
 
     def init_data(self):
         if self.login():
             device_info = self.get_devices()
             if device_info:
+                self.get_process_parameter()
                 return True
         return False
 
