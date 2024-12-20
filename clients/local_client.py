@@ -3,6 +3,7 @@ import logging
 from typing import Optional
 from .mqtt_client import MQTTClientBase
 from processors.message_processor import DeviceDataObserver
+import time
 
 
 class LocalClient(MQTTClientBase, DeviceDataObserver):
@@ -20,6 +21,8 @@ class LocalClient(MQTTClientBase, DeviceDataObserver):
             # Subscribe to all local topics
             for topic in self.topics.values():
                 self.subscribe(topic)
+        time.sleep(1)
+        self.rinnai_client.set_default_status()
 
     def on_message(self, client, userdata, msg):
         try:
