@@ -47,11 +47,11 @@ class RinnaiHomeAssistantDiscovery(MQTTClientBase):
                 "unit_of_measurement": "m³",
                 "device_class": "gas"
             })
-        elif config_type == 'sensor' and object_id == 'supplyTime':
+        elif config_type == 'sensor' and 'supplyTime' in object_id:
+
             config.update({
                 "state_topic": self.config.get_local_topics().get("supplyTime"),
-                "device_class": "timestamp",
-                "value_template": "{{ value_json }}"
+                "value_template": f"{{{{ value_json.{object_id.split('/')[-1]} }}}}",
             })
 
 
@@ -122,10 +122,16 @@ class RinnaiHomeAssistantDiscovery(MQTTClientBase):
             ("锅炉温度", "heatingTempSettingNM", "°C"),
             ("锅炉温度/节能", "heatingTempSettingHES", "°C"),
             ("耗气量", "gasConsumption", "m³"),
-            ("统计", "supplyTime", None)
+            ("供电时间", "supplyTime/totalPowerSupplyTime", "h"),
+            ("使用时间", "supplyTime/actualUseTime", "h"),
+            ("燃烧事件", "supplyTime/totalHeatingBurningTime", "h"),
+            ("地暖燃烧次数", "supplyTime/heatingBurningTimes", "次"),
+            ("热水燃烧次数", "supplyTime/hotWaterBurningTimes", "次")
+
         ]
 
         for label, object_id, unit in sensors:
+
             topic, config = self.generate_config(
                 'sensor',
                 object_id,
