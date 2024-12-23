@@ -21,6 +21,9 @@ class Config:
     # Local MQTT settings
     LOCAL_MQTT_HOST = os.getenv('LOCAL_MQTT_HOST')
     LOCAL_MQTT_PORT = int(os.getenv('LOCAL_MQTT_PORT', '1883'))
+    LOCAL_MQTT_USERNAME =os.getenv('LOCAL_MQTT_USERNAME', None)
+    LOCAL_MQTT_PASSWORD =os.getenv('LOCAL_MQTT_PASSWORD', None)
+    LOCAL_MQTT_TLS = os.getenv('LOCAL_MQTT_TLS', 'False')
     LOGGING = os.getenv('LOGGING', 'False')
 
 

@@ -4,6 +4,7 @@ from typing import Optional
 from .mqtt_client import MQTTClientBase
 from processors.message_processor import DeviceDataObserver
 import time
+import ssl
 
 
 class LocalClient(MQTTClientBase, DeviceDataObserver):
@@ -14,6 +15,16 @@ class LocalClient(MQTTClientBase, DeviceDataObserver):
         self.topics = config.get_local_topics()
         self.device_data = {}
         self.rinnai_client.message_processor.register_observer(self)
+
+        if self.config.LOCAL_MQTT_TLS :
+            self.client.tls_set(
+                cert_reqs=ssl.CERT_NONE,
+                tls_version=ssl.PROTOCOL_TLSv1_2
+            )
+
+        if self.config.LOCAL_MQTT_USERNAME and self.config.LOCAL_MQTT_PASSWORD:
+            self.client.username_pw_set(
+                self.config.LOCAL_MQTT_USERNAME, self.config.LOCAL_MQTT_PASSWORD)
 
     def on_connect(self, client, userdata, flags, rc):
         logging.info(f"Local MQTT connect status: {rc}")
