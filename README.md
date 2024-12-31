@@ -10,10 +10,15 @@
 ## update
 - 解包了林内智家apk,对一些模式描述进行了优化，`RBS-**G56`系列应该可以免抓包直接使用用户名+密码使用了
 - 中转林内智家mqtt通知到HA,实现可以在HA查看锅炉状态和调整温度，获取锅炉耗气量，其他功能可以自行修改
+- 更新支持本地mqtt可以配置密码连接
 ```
 - RINNAI_USERNAME=yourphone
 - RINNAI_PASSWORD=yourpassword
 - LOCAL_MQTT_HOST=yourhamqtt
+- LOCAL_MQTT_POST=yourhamqttport
+- LOCAL_MQTT_USERNAME=test
+- LOCAL_MQTT_PASSWORD=test
+- LOCAL_MQTT_TLS=Fasle # 本地mqtt地址如果是https需要开启，默认不开启
 - LOGGING=True #是否开启日志
 ```
 
@@ -21,26 +26,34 @@
 ## docker run 
 ```
 docker run -d \
-  --name rinnai_mqtt_ha \
-  -e RINNAI_USERNAME=user \
-  -e RINNAI_PASSWORD=pass \
-  -e LOCAL_MQTT_HOST=localhost \
-  -e LOGGING=True
+  --restart always \
+  -e RINNAI_USERNAME=yourphone \
+  -e RINNAI_PASSWORD=yourpassword \
+  -e LOCAL_MQTT_HOST=yourhamqtt \
+  -e LOCAL_MQTT_POST=yourhamqttport \
+  -e LOCAL_MQTT_USERNAME=test \
+  -e LOCAL_MQTT_PASSWORD=test \
+  -e LOCAL_MQTT_TLS=False \
+  -e LOGGING=True \
   ghcr.io/palafin02back/rinnai_mqtt_ha:release
 ```
 
 ## docker-compose
 ```
-version: '3.8'
+version: "3.8"
 services:
-  rinnai_mqtt_ha:
+  rinnai_mqtt:
     image: ghcr.io/palafin02back/rinnai_mqtt_ha:release
-    container_name: rinnai_mqtt_ha
+    restart: always
     environment:
-      RINNAI_USERNAME: user
-      RINNAI_PASSWORD: pass
-      LOGGING: True
-      LOCAL_MQTT_HOST: localhost  # 本地mqtt地址
+      - RINNAI_USERNAME=yourphone
+      - RINNAI_PASSWORD=yourpassword
+      - LOCAL_MQTT_HOST=yourhamqtt
+      - LOCAL_MQTT_POST=yourhamqttport
+      - LOCAL_MQTT_USERNAME=test
+      - LOCAL_MQTT_PASSWORD=test
+      - LOCAL_MQTT_TLS=False
+      - LOGGING=True
 ```
 # 效果展示
 HA中MQTT可以自行发现
