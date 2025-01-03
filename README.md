@@ -22,6 +22,67 @@
 - LOGGING=True #是否开启日志
 ```
 
+## 配合bubble-card展示UI基本可以替换app
+
+![image](https://github.com/user-attachments/assets/e8f034cf-0783-4833-b444-9466b4e1b76f)
+
+- 统计每日燃气消耗配置（）
+```yaml
+
+utility_meter:
+  daily_gas_consumption:
+    source: sensor.rinnai_heater_rinnai_hao_qi_liang 
+    cycle: daily
+    offset:
+      hours: 0
+      minutes: 0
+
+template:
+  - sensor:
+      - name: "Daily Gas Usage Calibrated"
+        unique_id: daily_gas_usage_calibrated
+        unit_of_measurement: "m³"
+        state: >
+          {% set current_meter = states('sensor.daily_gas_consumption') | float(0) %}
+          {% set last_reset = state_attr('sensor.daily_gas_consumption', 'last_reset') %}
+          {% set start_time = as_timestamp(last_reset) if last_reset else 0 %}
+          {% set now = as_timestamp(now()) %}
+          {% set hours_since_reset = ((now - start_time) / 3600) | float(0) %}
+          
+          {% if hours_since_reset <= 24 %}
+            {% if hours_since_reset > 0 %}
+              {{ current_meter }}
+            {% else %}
+              {{ 0 }}
+            {% endif %}
+          {% else %}
+            {{ state | float(0) }}
+          {% endif %}
+        attributes:
+          last_reset: >
+            {{ state_attr('sensor.daily_gas_consumption', 'last_reset') }}
+          time_since_reset_hours: >
+            {% set last_reset = state_attr('sensor.daily_gas_consumption', 'last_reset') %}
+            {% set start_time = as_timestamp(last_reset) if last_reset else 0 %}
+            {% set now = as_timestamp(now()) %}
+            {{ ((now - start_time) / 3600) | round(2) }}
+          data_quality: >
+            {% set last_reset = state_attr('sensor.daily_gas_consumption', 'last_reset') %}
+            {% set start_time = as_timestamp(last_reset) if last_reset else 0 %}
+            {% set now = as_timestamp(now()) %}
+            {% set hours_since_reset = ((now - start_time) / 3600) | float(0) %}
+            {% if hours_since_reset <= 24 %}
+              {% if hours_since_reset > 0 %}
+                {{ "good" }}
+              {% else %}
+                {{ "initializing" }}
+              {% endif %}
+            {% else %}
+              {{ "stale" }}
+            {% endif %}
+```
+
+
 
 ## docker run 
 ```
@@ -57,6 +118,7 @@ services:
 ```
 # 效果展示
 HA中MQTT可以自行发现
-![image](https://github.com/user-attachments/assets/4ec03ab1-56ab-4574-9f59-13eea7ad464c)
+![image](https://github.com/user-attachments/assets/19b55ddf-fae5-4025-b769-557bce473124)
+
 
 
