@@ -13,6 +13,19 @@ class RinnaiHomeAssistantDiscovery(MQTTClientBase):
         self.unique_id = "rinnai_heater"
         self.discovery_prefix = "homeassistant"
         
+        if self.config.LOCAL_MQTT_TLS:
+            self.client.tls_set(
+                cert_reqs=ssl.CERT_NONE,
+                tls_version=ssl.PROTOCOL_TLSv1_2
+            )
+            self.client.tls_insecure_set(True)
+            logging.info("Local MQTT TLS enabled")
+
+        if self.config.LOCAL_MQTT_USERNAME and self.config.LOCAL_MQTT_PASSWORD:
+            self.client.username_pw_set(
+                self.config.LOCAL_MQTT_USERNAME, self.config.LOCAL_MQTT_PASSWORD)
+            logging.info("Local MQTT authentication enabled")
+        
     
     def on_connect(self, client, userdata, flags, rc):
         logger.info(f"HomeAssistant MQTT connect status: {rc}")
