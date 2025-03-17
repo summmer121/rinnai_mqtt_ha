@@ -6,8 +6,9 @@ from abc import ABC, abstractmethod
 
 class MQTTClientBase(ABC):
     def __init__(self, client_prefix):
+        ts = datetime.datetime.now()
         self.client = mqtt.Client(
-            client_id=f"{client_prefix}_{str(uuid.uuid4())[:8]}",
+            client_id=f"{client_prefix}:{ts.second}{ts.microsecond}",
             callback_api_version=mqtt.CallbackAPIVersion.VERSION1
         )
         self.client.on_connect = self.on_connect

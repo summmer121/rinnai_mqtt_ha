@@ -45,11 +45,13 @@ def main():
         local_client.connect(config.LOCAL_MQTT_HOST, config.LOCAL_MQTT_PORT)
 
         # Start clients
-        rinnai_client.start()
-
+        # rinnai_client.start()
+        # 启动定时更新
+        rinnai_client.schedule_update()
         # Local client runs in main thread
         logger.info("Starting rinnai mqtt integration...")
-        local_client.client.loop_forever()
+        local_client.start()
+        #local_client.client.loop_forever()
 
     except KeyboardInterrupt:
         logger.info("Shutting down...")

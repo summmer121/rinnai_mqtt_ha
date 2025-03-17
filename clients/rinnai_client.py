@@ -7,10 +7,13 @@ from processors.message_processor import MessageProcessor
 
 class RinnaiClient(MQTTClientBase):
     def __init__(self, config, message_processor: MessageProcessor):
-        super().__init__("rinnai_ha_bridge")
+        super().__init__(f"{config.RINNAI_USERNAME}")
         self.config = config
         self.message_processor = message_processor
         self.topics = config.get_rinnai_topics()
+        self.connected = False
+        self.update_timer = None
+        self.disconnect_timer = None
         logging.info(f"Rinnai topics: {self.topics}")
 
         # Configure TLS
@@ -22,6 +25,44 @@ class RinnaiClient(MQTTClientBase):
         self.client.username_pw_set(
             self.config.RINNAI_USERNAME, self.config.RINNAI_PASSWORD)
 
+    def schedule_update(self):
+        """定时更新任务"""
+        self.connect_and_update()
+        self.update_timer = threading.Timer(
+            self.config.RINNAI_UPDATE_INTERVAL, self.schedule_update)
+        self.update_timer.start()
+
+    def connect_and_update(self):
+        """连接并获取更新"""
+        if not self.connected:
+            self.connect(self.config.RINNAI_HOST, self.config.RINNAI_PORT)
+            self.connected = True
+            # 设置断开连接定时器
+            if self.disconnect_timer:
+                self.disconnect_timer.cancel()
+            self.disconnect_timer = threading.Timer(
+                self.config.RINNAI_CONNECT_TIMEOUT, self.disconnect_and_cleanup)
+            self.disconnect_timer.start()
+
+    def disconnect_and_cleanup(self):
+        """断开连接并清理"""
+        if self.connected:
+            self.disconnect()
+            self.connected = False
+
+    def send_command(self, topic, payload):
+        """发送命令时临时连接"""
+        self.connect_and_update()
+        self.publish(topic, payload)
+
+    def stop(self):
+        """停止所有定时器"""
+        if self.update_timer:
+            self.update_timer.cancel()
+        if self.disconnect_timer:
+            self.disconnect_timer.cancel()
+        self.disconnect_and_cleanup()
+    
     def on_connect(self, client, userdata, flags, rc):
         logging.info(f"Rinnai MQTT connect status: {rc}")
         if rc == 0:
