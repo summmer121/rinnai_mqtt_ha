@@ -1,5 +1,9 @@
+
 # 使用官方 Python 瘦身镜像（基于 Debian）
-FROM python:3.9-slim
+FROM --platform=$TARGETPLATFORM python:3.9-slim-bookworm
+# # 添加架构参数
+ARG TARGETARCH
+ENV DOCKER_ARCH=$TARGETARCH
 
 # 设置容器内工作目录
 WORKDIR /app
